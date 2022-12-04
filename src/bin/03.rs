@@ -65,16 +65,8 @@ pub fn part_two(input: &Input) -> Option<u32> {
     Some(sum)
 }
 
-fn input_panicking_parser(input: String) -> Input {
-    let (rest, input) = input_parser(&input).expect("could not parse input file");
-    if !rest.is_empty() {
-        panic!("Input wasn't fully parsed:\n{}", rest);
-    }
-    input
-}
-
 fn main() {
-    let input = &advent_of_code::read_file_nom("inputs", 3, input_panicking_parser);
+    let input = &advent_of_code::read_file_nom("inputs", 3, input_parser);
     advent_of_code::solve_nom!(1, part_one, input);
     advent_of_code::solve_nom!(2, part_two, input);
 }
@@ -85,13 +77,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let input = advent_of_code::read_file_nom("examples", 3, input_panicking_parser);
+        let input = advent_of_code::read_file_nom("examples", 3, input_parser);
         assert_eq!(part_one(&input), Some(157));
     }
 
     #[test]
     fn test_part_two() {
-        let input = advent_of_code::read_file_nom("examples", 3, input_panicking_parser);
+        let input = advent_of_code::read_file_nom("examples", 3, input_parser);
         assert_eq!(part_two(&input), Some(70));
     }
 }

@@ -6,6 +6,11 @@
 use std::env;
 use std::fs;
 
+use nom::{
+    error::ParseError,
+    IResult,
+};
+
 pub mod helpers;
 
 pub const ANSI_ITALIC: &str = "\x1b[3m";
@@ -79,7 +84,12 @@ pub fn read_file(folder: &str, day: u8) -> String {
     f.expect("could not open input file")
 }
 
-pub fn read_file_nom<O>(folder: &str, day: u8, parser: fn(String) -> O) -> O {
+
+pub fn read_file_nom<F, O, E>(folder: &str, day: u8, parser: F) -> O
+where
+    F: for<'input> Fn(&'input str) -> IResult<&'input str, O, E>,
+    E: for<'error> ParseError<&'error str> + std::fmt::Debug,
+{
     let cwd = env::current_dir().unwrap();
 
     let filepath = cwd.join("src").join(folder).join(format!("{:02}.txt", day));
@@ -87,7 +97,11 @@ pub fn read_file_nom<O>(folder: &str, day: u8, parser: fn(String) -> O) -> O {
     let f = fs::read_to_string(filepath);
     let input_string = f.expect("could not open input file");
 
-    parser(input_string)
+    let (rest, input) = parser(&input_string).expect("could not parse input file");
+    if !rest.is_empty() {
+        panic!("Input wasn't fully parsed:\n{}", rest);
+    }
+    input
 }
 
 fn parse_time(val: &str, postfix: &str) -> f64 {
