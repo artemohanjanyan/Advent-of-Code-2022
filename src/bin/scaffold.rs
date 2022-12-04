@@ -8,18 +8,88 @@ use std::{
     process,
 };
 
-const MODULE_TEMPLATE: &str = r###"pub fn part_one(input: &str) -> Option<u32> {
+
+use nom::{
+    character::complete::{char, digit1},
+    combinator::map_res,
+    multi::{separated_list0, separated_list1},
+    IResult,
+};
+
+use std::str::FromStr;
+
+type Input = Vec<Vec<u32>>;
+
+pub fn input_parser(input: &str) -> IResult<&str, Input> {
+    separated_list1(
+        char('\n'),
+        separated_list0(
+            char('\n'),
+            map_res(digit1, FromStr::from_str),
+        ),
+    )(input)
+}
+
+pub fn part_one(input: &Input) -> Option<u32> {
+    input.iter()
+        .map(|elf| elf.iter().sum())
+        .max()
+}
+
+pub fn part_two(input: &Input) -> Option<u32> {
+    let mut sums: Vec<u32> = input.iter()
+        .map(|elf| elf.iter().sum())
+        .collect::<Vec<u32>>();
+    sums.sort_by(|a, b| b.cmp(a));
+    Some(sums[0] + sums[1] + sums[2])
+}
+
+pub fn input_panicking_parser(input: String) -> Input {
+    let (rest, input) = input_parser(&input).expect("could not parse input file");
+    if !rest.is_empty() {
+        panic!("input wasn't fully parsed:\n{}", rest);
+    }
+    input
+}
+
+const MODULE_TEMPLATE: &str = r###"use nom::{
+    character::complete::{char, digit1},
+    combinator::map_res,
+    multi::separated_list0,
+    IResult,
+};
+
+use std::str::FromStr;
+
+type Input = Vec<u32>;
+
+pub fn input_parser(input: &str) -> IResult<&str, Input> {
+    separated_list0(
+        char('\n'),
+        map_res(digit1, FromStr::from_str),
+    )(input)
+}
+
+pub fn part_one(input: &Input) -> Option<u32> {
     None
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
+pub fn part_two(input: &Input) -> Option<u32> {
     None
+}
+
+fn input_panicking_parser(input: String) -> Input {
+    let (rest, input) = input_parser(&input).expect("could not parse input file");
+    if !rest.is_empty() {
+        panic!("Input wasn't fully parsed:\n{}", rest);
+    }
+    input
 }
 
 fn main() {
-    let input = &advent_of_code::read_file("inputs", DAY);
-    advent_of_code::solve!(1, part_one, input);
-    advent_of_code::solve!(2, part_two, input);
+    let input = &advent_of_code::read_file_nom("inputs", DAY, input_panicking_parser);
+    advent_of_code::solve_nom!(1, part_one, input);
+    advent_of_code::solve_nom!(2, part_two, input);
 }
 
 #[cfg(test)]
@@ -28,13 +98,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let input = advent_of_code::read_file("examples", DAY);
+        let input = advent_of_code::read_file_nom("examples", DAY, input_panicking_parser);
         assert_eq!(part_one(&input), None);
     }
 
     #[test]
     fn test_part_two() {
-        let input = advent_of_code::read_file("examples", DAY);
+        let input = advent_of_code::read_file_nom("examples", DAY, input_panicking_parser);
         assert_eq!(part_two(&input), None);
     }
 }
