@@ -6,16 +6,40 @@
 use std::env;
 use std::fs;
 
-use nom::{
-    error::ParseError,
-    IResult,
-};
-
 pub mod helpers;
 
 pub const ANSI_ITALIC: &str = "\x1b[3m";
 pub const ANSI_BOLD: &str = "\x1b[1m";
 pub const ANSI_RESET: &str = "\x1b[0m";
+
+#[macro_export]
+macro_rules! solve_nom {
+    ($part:expr, $solver:ident, $input:expr) => {{
+        use advent_of_code::{ANSI_BOLD, ANSI_ITALIC, ANSI_RESET};
+        use std::fmt::Display;
+        use std::time::Instant;
+
+        fn print_result<O, T: Display>(func: impl FnOnce(&O) -> Option<T>, input: &O) {
+            let timer = Instant::now();
+            let result = func(input);
+            let elapsed = timer.elapsed();
+            match result {
+                Some(result) => {
+                    println!(
+                        "{} {}(elapsed: {:.2?}){}",
+                        result, ANSI_ITALIC, elapsed, ANSI_RESET
+                    );
+                }
+                None => {
+                    println!("not solved.")
+                }
+            }
+        }
+
+        println!("🎄 {}Part {}{} 🎄", ANSI_BOLD, $part, ANSI_RESET);
+        print_result($solver, $input);
+    }};
+}
 
 #[macro_export]
 macro_rules! solve {
@@ -55,10 +79,7 @@ pub fn read_file(folder: &str, day: u8) -> String {
     f.expect("could not open input file")
 }
 
-pub fn read_file_nom<'a, F: 'a, O, E: ParseError<&'a str> + std::fmt::Debug>(folder: &str, day: u8, parser: F) -> O
-where
-    F: Fn(&'a str) -> IResult<&'a str, O, E>,
-{
+pub fn read_file_nom<O>(folder: &str, day: u8, parser: fn(String) -> O) -> O {
     let cwd = env::current_dir().unwrap();
 
     let filepath = cwd.join("src").join(folder).join(format!("{:02}.txt", day));
@@ -66,34 +87,7 @@ where
     let f = fs::read_to_string(filepath);
     let input_string = f.expect("could not open input file");
 
-    let (_rest, input) = parser(input_string).expect("could not parse input file");
-    /* Error:
-  --> src/lib.rs:69:33
-   |
-69 |     let (_rest, input) = parser(input_string).expect("could not parse input file");
-   |                                 ^^^^^^^^^^^^
-   |                                 |
-   |                                 expected `&str`, found struct `String`
-   |                                 help: consider borrowing here: `&input_string`
-*/
-
-    //let (_rest, input) = parser(&input_string).expect("could not parse input file");
-    /* Error:
-  --> src/lib.rs:69:33
-   |
-58 | pub fn read_file_nom<'a, F: 'a, O, E: ParseError<&'a str> + std::fmt::Debug>(folder: &str, day: u8, parser: F) -> O
-   |                      -- lifetime `'a` defined here
-...
-69 |     let (_rest, input) = parser(&input_string).expect("could not parse input file");
-   |                          -------^^^^^^^^^^^^^-
-   |                          |      |
-   |                          |      borrowed value does not live long enough
-   |                          argument requires that `input_string` is borrowed for `'a`
-70 |     input
-71 | }
-   | - `input_string` dropped here while still borrowed
-*/
-    input
+    parser(input_string)
 }
 
 fn parse_time(val: &str, postfix: &str) -> f64 {
