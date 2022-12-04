@@ -8,54 +8,11 @@ use std::{
     process,
 };
 
-
-use nom::{
-    character::complete::{char, digit1},
-    combinator::map_res,
-    multi::{separated_list0, separated_list1},
-    IResult,
-};
-
-use std::str::FromStr;
-
-type Input = Vec<Vec<u32>>;
-
-pub fn input_parser(input: &str) -> IResult<&str, Input> {
-    separated_list1(
-        char('\n'),
-        separated_list0(
-            char('\n'),
-            map_res(digit1, FromStr::from_str),
-        ),
-    )(input)
-}
-
-pub fn part_one(input: &Input) -> Option<u32> {
-    input.iter()
-        .map(|elf| elf.iter().sum())
-        .max()
-}
-
-pub fn part_two(input: &Input) -> Option<u32> {
-    let mut sums: Vec<u32> = input.iter()
-        .map(|elf| elf.iter().sum())
-        .collect::<Vec<u32>>();
-    sums.sort_by(|a, b| b.cmp(a));
-    Some(sums[0] + sums[1] + sums[2])
-}
-
-pub fn input_panicking_parser(input: String) -> Input {
-    let (rest, input) = input_parser(&input).expect("could not parse input file");
-    if !rest.is_empty() {
-        panic!("input wasn't fully parsed:\n{}", rest);
-    }
-    input
-}
-
 const MODULE_TEMPLATE: &str = r###"use nom::{
     character::complete::{char, digit1},
     combinator::map_res,
-    multi::separated_list0,
+    sequence::terminated,
+    multi::many1,
     IResult,
 };
 
@@ -64,10 +21,10 @@ use std::str::FromStr;
 type Input = Vec<u32>;
 
 pub fn input_parser(input: &str) -> IResult<&str, Input> {
-    separated_list0(
-        char('\n'),
+    many1(terminated(
         map_res(digit1, FromStr::from_str),
-    )(input)
+        char('\n'),
+    ))(input)
 }
 
 pub fn part_one(input: &Input) -> Option<u32> {
