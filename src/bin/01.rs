@@ -7,7 +7,9 @@ use nom::{
 
 use std::str::FromStr;
 
-pub fn input_parser(input: &str) -> IResult<&str, Vec<Vec<u32>>> {
+type Input = Vec<Vec<u32>>;
+
+pub fn input_parser(input: &str) -> IResult<&str, Input> {
     separated_list1(
         char('\n'),
         separated_list0(
@@ -17,15 +19,13 @@ pub fn input_parser(input: &str) -> IResult<&str, Vec<Vec<u32>>> {
     )(input)
 }
 
-pub fn part_one(input_str: &str) -> Option<u32> {
-    let (_rest, input) = input_parser(input_str).ok()?;
+pub fn part_one(input: &Input) -> Option<u32> {
     input.iter()
         .map(|elf| elf.iter().sum())
         .max()
 }
 
-pub fn part_two(input_str: &str) -> Option<u32> {
-    let (_rest, input) = input_parser(input_str).ok()?;
+pub fn part_two(input: &Input) -> Option<u32> {
     let mut sums: Vec<u32> = input.iter()
         .map(|elf| elf.iter().sum())
         .collect::<Vec<u32>>();
@@ -33,10 +33,18 @@ pub fn part_two(input_str: &str) -> Option<u32> {
     Some(sums[0] + sums[1] + sums[2])
 }
 
+pub fn input_panicking_parser(input: String) -> Input {
+    let (rest, input) = input_parser(&input).expect("could not parse input file");
+    if !rest.is_empty() {
+        panic!("input wasn't fully parsed:\n{}", rest);
+    }
+    input
+}
+
 fn main() {
-    let input = &advent_of_code::read_file("inputs", 1);
-    advent_of_code::solve!(1, part_one, input);
-    advent_of_code::solve!(2, part_two, input);
+    let input = &advent_of_code::read_file_nom("inputs", 1, input_panicking_parser);
+    advent_of_code::solve_nom!(1, part_one, input);
+    advent_of_code::solve_nom!(2, part_two, input);
 }
 
 #[cfg(test)]
@@ -45,13 +53,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let input = advent_of_code::read_file("examples", 1);
+        let input = advent_of_code::read_file_nom("examples", 1, input_panicking_parser);
         assert_eq!(part_one(&input), Some(24000));
     }
 
     #[test]
     fn test_part_two() {
-        let input = advent_of_code::read_file("examples", 1);
+        let input = advent_of_code::read_file_nom("examples", 1, input_panicking_parser);
         assert_eq!(part_two(&input), Some(45000));
     }
 }

@@ -52,7 +52,6 @@ pub fn part_one(input_str: &str) -> Option<i32> {
 
 pub fn part_two(input_str: &str) -> Option<i32> {
     let (_rest, input) = input_parser(input_str).ok()?;
-    let (_rest, input) = input_parser(input_str).ok()?;
     let mut sum = 0;
     for &(a, b) in input.iter() {
         sum += result2(a, b)
