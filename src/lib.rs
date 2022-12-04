@@ -6,6 +6,11 @@
 use std::env;
 use std::fs;
 
+use nom::{
+    error::ParseError,
+    IResult,
+};
+
 pub mod helpers;
 
 pub const ANSI_ITALIC: &str = "\x1b[3m";
@@ -50,7 +55,6 @@ pub fn read_file(folder: &str, day: u8) -> String {
     f.expect("could not open input file")
 }
 
-/*
 pub fn read_file_nom<'a, F: 'a, O, E: ParseError<&'a str> + std::fmt::Debug>(folder: &str, day: u8, parser: F) -> O
 where
     F: Fn(&'a str) -> IResult<&'a str, O, E>,
@@ -63,9 +67,34 @@ where
     let input_string = f.expect("could not open input file");
 
     let (_rest, input) = parser(input_string).expect("could not parse input file");
+    /* Error:
+  --> src/lib.rs:69:33
+   |
+69 |     let (_rest, input) = parser(input_string).expect("could not parse input file");
+   |                                 ^^^^^^^^^^^^
+   |                                 |
+   |                                 expected `&str`, found struct `String`
+   |                                 help: consider borrowing here: `&input_string`
+*/
+
+    //let (_rest, input) = parser(&input_string).expect("could not parse input file");
+    /* Error:
+  --> src/lib.rs:69:33
+   |
+58 | pub fn read_file_nom<'a, F: 'a, O, E: ParseError<&'a str> + std::fmt::Debug>(folder: &str, day: u8, parser: F) -> O
+   |                      -- lifetime `'a` defined here
+...
+69 |     let (_rest, input) = parser(&input_string).expect("could not parse input file");
+   |                          -------^^^^^^^^^^^^^-
+   |                          |      |
+   |                          |      borrowed value does not live long enough
+   |                          argument requires that `input_string` is borrowed for `'a`
+70 |     input
+71 | }
+   | - `input_string` dropped here while still borrowed
+*/
     input
 }
-*/
 
 fn parse_time(val: &str, postfix: &str) -> f64 {
     val.split(postfix).next().unwrap().parse().unwrap()
