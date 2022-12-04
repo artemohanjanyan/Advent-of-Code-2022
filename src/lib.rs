@@ -7,7 +7,7 @@ use std::env;
 use std::fs;
 
 use nom::{
-    error::ParseError,
+    error::Error,
     IResult,
 };
 
@@ -85,10 +85,9 @@ pub fn read_file(folder: &str, day: u8) -> String {
 }
 
 
-pub fn read_file_nom<F, O, E>(folder: &str, day: u8, parser: F) -> O
+pub fn read_file_nom<F, O>(folder: &str, day: u8, parser: F) -> O
 where
-    F: for<'input> Fn(&'input str) -> IResult<&'input str, O, E>,
-    E: for<'error> ParseError<&'error str> + std::fmt::Debug,
+    F: for<'input> Fn(&'input str) -> IResult<&'input str, O, Error<&'input str>>,
 {
     let cwd = env::current_dir().unwrap();
 
