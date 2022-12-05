@@ -20,7 +20,7 @@ use std::str::FromStr;
 
 type Input = Vec<u32>;
 
-pub fn input_parser(input: &str) -> IResult<&str, Input> {
+fn input_parser(input: &str) -> IResult<&str, Input> {
     many1(terminated(
         map_res(digit1, FromStr::from_str),
         char('\n'),
