@@ -53,35 +53,33 @@ struct Point {
 }
 
 impl Point {
-    fn go(self, direction: &Direction) -> Point {
+    fn go(&mut self, direction: &Direction) {
         match *direction {
-            Direction::Up => Point { x: self.x, y: self.y + 1 },
-            Direction::Down => Point { x: self.x, y: self.y - 1 },
-            Direction::Left => Point { x: self.x - 1, y: self.y },
-            Direction::Right => Point { x: self.x + 1, y: self.y },
+            Direction::Up => self.y += 1,
+            Direction::Down => self.y -= 1,
+            Direction::Left => self.x -= 1,
+            Direction::Right => self.x += 1,
         }
     }
 
-    fn follow_y(self, head: &Point) -> Point {
-        if self.y == head.y {
-            return self
-        } else if self.y > head.y {
-            self.go(&Direction::Down)
-        } else {
-            self.go(&Direction::Up)
+    fn follow_y(&mut self, head: &Point) {
+        if self.y > head.y {
+            self.go(&Direction::Down);
+        } else if self.y < head.y {
+            self.go(&Direction::Up);
         }
     }
 
-    fn follow(self, head: &Point) -> Point {
+    fn follow(&mut self, head: &Point) {
         if self.x == head.x {
             self.follow_y(head)
         } else {
-            let tmp = if self.x > head.x {
-                self.go(&Direction::Left)
+            if self.x > head.x {
+                self.go(&Direction::Left);
             } else {
-                self.go(&Direction::Right)
+                self.go(&Direction::Right);
             };
-            tmp.follow_y(head)
+            self.follow_y(head);
         }
     }
 }
@@ -96,10 +94,11 @@ struct Rope {
 
 impl Rope {
     fn go(&mut self, direction: &Direction) {
-        self.points[0] = self.points[0].go(direction);
+        self.points[0].go(direction);
         for i in 1..self.points.len() {
             if dist(&self.points[i - 1], &self.points[i]) > 1 {
-                self.points[i] = self.points[i].follow(&self.points[i - 1]);
+                let point_to_follow = self.points[i - 1];
+                self.points[i].follow(&point_to_follow);
             }
         }
     }
@@ -112,9 +111,9 @@ pub fn part_one(input: &Input) -> Option<usize> {
     visited_points.insert(tail);
     for step in input {
         for _ in 0..step.count {
-            head = head.go(&step.direction);
+            head.go(&step.direction);
             if dist(&head, &tail) > 1 {
-                tail = tail.follow(&head);
+                tail.follow(&head);
             }
             visited_points.insert(tail);
         }
