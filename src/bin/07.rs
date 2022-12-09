@@ -23,7 +23,7 @@ pub enum Command {
 
 #[derive(Clone, Debug)]
 pub struct File {
-    name: String,
+    _name: String,
     size: usize,
 }
 
@@ -74,7 +74,7 @@ fn directory_item_parser(input: &str) -> IResult<&str, DirectoryItem> {
                 many1(verify(anychar, |&c| c.is_ascii_alphabetic() || c == '.')),
             ),
             |(size, name)| DirectoryItem::File(File {
-                name: name.into_iter().collect(),
+                _name: name.into_iter().collect(),
                 size: size,
             }),
         ),
