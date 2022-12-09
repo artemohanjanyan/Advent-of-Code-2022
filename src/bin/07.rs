@@ -104,11 +104,6 @@ struct Dir {
     files: Vec<File>,
 }
 
-static mut SIZE_SUM: usize = 0;
-
-static mut MIN_DIR_REQ: usize = 0;
-static mut MIN_DIR: usize = 0;
-
 impl Dir {
     fn add_directory_item(&mut self, path: &[&str], directory_item: DirectoryItem) {
         if path.len() == 0 {
@@ -134,19 +129,19 @@ impl Dir {
         }
     }
 
-    fn size(&self) -> usize {
+    fn size(&self, size_sum: &mut usize, min_dir: &mut usize, min_dir_req: usize) -> usize {
         let mut dir_size = 0;
         for (_, dir) in &self.directories {
-            dir_size += dir.size();
+            dir_size += dir.size(size_sum, min_dir, min_dir_req);
         }
         for file in &self.files {
             dir_size += file.size;
         }
         if dir_size <= 100000 {
-            unsafe { SIZE_SUM += dir_size; }
+            *size_sum += dir_size;
         }
-        if dir_size >= unsafe { MIN_DIR_REQ } {
-            unsafe { MIN_DIR = std::cmp::min(dir_size, MIN_DIR); }
+        if dir_size >= min_dir_req {
+            *min_dir = std::cmp::min(dir_size, *min_dir);
         }
         dir_size
     }
@@ -176,9 +171,11 @@ pub fn part_one(input: &Input) -> Option<usize> {
         files: vec!(),
     };
     init(input, &mut root);
-    unsafe { SIZE_SUM = 0; }
-    root.size();
-    Some(unsafe { SIZE_SUM })
+    let mut size_sum = 0;
+    let mut min_dir = 0;
+    let min_dir_req = 0;
+    root.size(&mut size_sum, &mut min_dir, min_dir_req);
+    Some(size_sum)
 }
 
 pub fn part_two(input: &Input) -> Option<usize> {
@@ -187,13 +184,15 @@ pub fn part_two(input: &Input) -> Option<usize> {
         files: vec!(),
     };
     init(input, &mut root);
-    let all_size = root.size();
-    unsafe {
-        MIN_DIR_REQ = 30000000 - (70000000 - all_size);
-        MIN_DIR = 70000000;
-    }
-    root.size();
-    Some(unsafe { MIN_DIR })
+    let mut size_sum = 0;
+    let mut min_dir = 0;
+    let mut min_dir_req = 0;
+    let all_size = root.size(&mut size_sum, &mut min_dir, min_dir_req);
+    size_sum = 0;
+    min_dir = 70000000;
+    min_dir_req = 30000000 - (70000000 - all_size);
+    root.size(&mut size_sum, &mut min_dir, min_dir_req);
+    Some(min_dir)
 }
 
 fn main() {
