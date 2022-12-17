@@ -9,20 +9,19 @@ use std::{
 };
 
 const MODULE_TEMPLATE: &str = r###"use nom::{
-    character::complete::{char, digit1},
-    combinator::map_res,
+    character::complete::char,
     sequence::terminated,
     multi::many1,
     IResult,
 };
 
-use std::str::FromStr;
+use advent_of_code::helpers::parse_int;
 
 type Input = Vec<u32>;
 
 fn input_parser(input: &str) -> IResult<&str, Input> {
     many1(terminated(
-        map_res(digit1, FromStr::from_str),
+        parse_int,
         char('\n'),
     ))(input)
 }
