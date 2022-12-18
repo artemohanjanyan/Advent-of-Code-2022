@@ -7,7 +7,7 @@ use nom::{
     IResult,
 };
 
-use advent_of_code::helpers::parse_int;
+use advent_of_code::helpers::int_parser;
 use std::cmp::Ordering;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -19,7 +19,7 @@ type Input = Vec<(Packet, Packet)>;
 
 fn packet_parser(input: &str) -> IResult<&str, Packet> {
     alt((
-        map(parse_int, Packet::Integer),
+        map(int_parser, Packet::Integer),
         map(
             delimited(
                 char('['),

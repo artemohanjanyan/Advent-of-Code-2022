@@ -8,7 +8,7 @@ use nom::{
     IResult,
 };
 
-use advent_of_code::helpers::parse_int;
+use advent_of_code::helpers::int_parser;
 
 #[derive(Clone)]
 enum Arg {
@@ -29,7 +29,7 @@ struct Operation {
 fn parse_arg(input: &str) -> IResult<&str, Arg> {
     alt((
         value(Arg::OldValue, tag("old")),
-        map(parse_int, |x| Arg::Const(x)),
+        map(int_parser, |x| Arg::Const(x)),
     ))(input)
 }
 
@@ -70,20 +70,20 @@ pub struct Monkey {
 fn parse_items(input: &str) -> IResult<&str, Vec<i64>> {
     separated_list1(
         tag(", "),
-        parse_int,
+        int_parser,
     )(input)
 }
 
 fn parse_monkey(input: &str) -> IResult<&str, Monkey> {
     preceded(
-        delimited(tag("Monkey "), parse_int::<i64>, tag(":\n")),
+        delimited(tag("Monkey "), int_parser::<i64>, tag(":\n")),
         map(
             tuple((
                 delimited(tag("  Starting items: "), parse_items, char('\n')),
                 delimited(tag("  Operation: new = "), parse_operation, char('\n')),
-                delimited(tag("  Test: divisible by "), parse_int::<i64>, char('\n')),
-                delimited(tag("    If true: throw to monkey "), parse_int::<i64>, char('\n')),
-                delimited(tag("    If false: throw to monkey "), parse_int::<i64>, char('\n')),
+                delimited(tag("  Test: divisible by "), int_parser::<i64>, char('\n')),
+                delimited(tag("    If true: throw to monkey "), int_parser::<i64>, char('\n')),
+                delimited(tag("    If false: throw to monkey "), int_parser::<i64>, char('\n')),
             )),
             |(items, operation, test, throw_if_true, throw_if_false)| Monkey {
                 items: items,

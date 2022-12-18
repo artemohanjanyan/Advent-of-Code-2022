@@ -15,13 +15,13 @@ const MODULE_TEMPLATE: &str = r###"use nom::{
     IResult,
 };
 
-use advent_of_code::helpers::parse_int;
+use advent_of_code::helpers::int_parser;
 
 type Input = Vec<u32>;
 
 fn input_parser(input: &str) -> IResult<&str, Input> {
     many1(terminated(
-        parse_int,
+        int_parser,
         char('\n'),
     ))(input)
 }
